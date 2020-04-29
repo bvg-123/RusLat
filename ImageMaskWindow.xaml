@@ -1,0 +1,19 @@
+﻿<Window x:Class="RusLat.ImageMaskWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:RusLat"
+        mc:Ignorable="d"
+        Title="RUSLAT Highlighter - выбор изображения подсвечиваемого языка" Height="220pt" Width="500pt" WindowStartupLocation="CenterScreen">
+  <Grid>
+    <TextBlock Text="Это первый запуск приложения. Необходимо включить язык ввода, который приложение должно автоматически подсвечивать, и выделить область в системном трее с изображением этого языка ввода."
+      Margin="0,10,0,0" HorizontalAlignment="Center" VerticalAlignment="Top" Height="84" TextWrapping="Wrap"
+      TextAlignment="Center" FontSize="14pt"/>
+    <Button x:Name="SelectImageMaskButton" HorizontalAlignment="Center" Margin="0,140,0,0" VerticalAlignment="Top"
+      Width="448" Height="78" FontSize="14pt" Click="SelectImageMaskButton_Click">
+      <TextBlock Text="Выделить область с изображением подсвечиваемого языка ввода" TextWrapping="Wrap" TextAlignment="Center"/>
+    </Button>
+
+  </Grid>
+</Window>
