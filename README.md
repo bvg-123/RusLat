@@ -11,14 +11,14 @@ Supported Windows Versions: Windows 7 - Windows 10.
 русских и латинских букв? Утилита RusLat поможет решить эти проблемы. 
 
 Ключи командной строки для управления запущенным экземпляром утилиты:
-![alt text](https://github.com/bvg-123/RusLat/blob/master/Promo/CmdKeys.jpg)
+![CmdKeys](https://github.com/bvg-123/RusLat/blob/master/Promo/CmdKeys.jpg)
 
 Окно выбора подсвечиваемой раскладки клавиатуры (языка):
-![alt text](https://github.com/bvg-123/RusLat/blob/master/Promo/ImageMaskWindow.jpg)
+![ImageMaskWindow](https://github.com/bvg-123/RusLat/blob/master/Promo/ImageMaskWindow.jpg)
 
-Отладочное окно с контролем алгоритма распознавания изображения текущего языка ввода, отображаемого рядом с системным треем: 
-![alt text](https://github.com/bvg-123/RusLat/blob/master/Promo/DebugWindow.png)
+Отладочное окно с контролем алгоритма распознавания изображения текущего языка ввода, отображаемого рядом с системным треем:
+<div><img src="https://github.com/bvg-123/RusLat/blob/master/Promo/DebugWindow.png" alt="DebugWindow"></div>
 
 Подсветка экрана при включении русской раскладки в действии:
-![alt text](https://github.com/bvg-123/RusLat/blob/master/Promo/Highlited.png)
+![Highlited Screen](https://github.com/bvg-123/RusLat/blob/master/Promo/Highlited.png)
    
