@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RusLat.Tools.AffinityDetectors;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace RusLat.Tools
     /// <summary>
     /// Имя файла с маской изображения языка ввода, при наличии которого нужно включать визуальную подсветку.
     /// </summary>
-    private const string MaskFileName = "Mask.png";
+    private string MaskFileName = @"%APPDATA%\RusLat\Mask.png";
 
     /// <summary>
     /// Строка запроса заголовка метаданных изображнения для хранения положения записанной в изображении области маски.
@@ -63,12 +64,20 @@ namespace RusLat.Tools
     /// </summary>
     private System.Drawing.Rectangle Bounds;
 
+    /// <summary>
+    /// Фабрика для создания экземпляров детекторов сходства растров с пикселями в качестве реперных точек.
+    /// </summary>
+    private AffinityDetectorFabric<Raster.Pixel> AffinityDetectorFabric;
+
 
     /// <summary>
     /// Конструктор.
     /// </summary>
     public ImageMask ()
     {
+      MaskFileName = Environment.ExpandEnvironmentVariables(MaskFileName);
+      Directory.CreateDirectory(Path.GetDirectoryName(MaskFileName));
+      AffinityDetectorFabric = new AffinityDetectorFabric<Raster.Pixel>();
       if (File.Exists(MaskFileName))
       {
         using (FileStream stream = File.Open(MaskFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -77,22 +86,34 @@ namespace RusLat.Tools
           BitmapFrame frame = decoder.Frames[0];
           Bounds.Width = frame.PixelWidth;
           Bounds.Height = frame.PixelHeight;
-          BitmapMetadata metadata = (BitmapMetadata)frame.Metadata;
-          object obj = metadata.GetQuery(BoundsMetadataQuery);
-          if ((obj != null) && (obj is string))
-          {
-            string[] items = ((string)(obj)).Split(',');
-            if (items.Length == 2)
-            {
-              Bounds.X = int.Parse(items[0]);
-              Bounds.Y = int.Parse(items[1]);
+//          BitmapMetadata metadata = (BitmapMetadata)frame.Metadata;
+//          object obj = metadata.GetQuery(BoundsMetadataQuery);
+//          if ((obj != null) && (obj is string))
+//          {
+//            string[] items = ((string)(obj)).Split(',');
+//            if (items.Length == 2)
+//            {
+//              Bounds.X = int.Parse(items[0]);
+//              Bounds.Y = int.Parse(items[1]);
               MaskBitmap = GetBitmap(frame);
               Mask = new Raster(MaskBitmap);
-            }
-          }
+              Debugger.Current?.TraceMask(MaskBitmap);
+              Debugger.Current?.TraceRaster(Mask);
+//            }
+//          }
         }
+        Debugger.Current?.TraceBounds(Bounds);
       }
     } // ImageMask
+
+
+    /// <summary>
+    /// Удаляет ранее сохораненное изображения-маску подсвечиваемого языка ввода. 
+    /// </summary>
+    public void Delete ()
+    {
+      if (File.Exists(MaskFileName)) File.Delete(MaskFileName);
+    } // Delete
 
 
     /// <summary>
@@ -120,6 +141,9 @@ namespace RusLat.Tools
       MaskBitmap = maskBitmap;
       Mask = new Raster(MaskBitmap);
       Bounds = bounds;
+      Debugger.Current?.TraceBounds(Bounds);
+      Debugger.Current?.TraceMask(MaskBitmap);
+      Debugger.Current?.TraceRaster(Mask);
       using (FileStream stream = File.Create(MaskFileName))
       {
         PngBitmapEncoder encoder = new PngBitmapEncoder();
@@ -152,15 +176,24 @@ namespace RusLat.Tools
       bool result = Exists();
       if (result)
       {
-        using (System.Drawing.Bitmap bitmap = ScreenCapturer.Capture(Bounds))
+        System.Drawing.Rectangle bounds = Bounds;
+        if (Windows.ImageMaskWindow.AutoSelectionMode)
         {
-//          bitmap.Save("qq1.png", System.Drawing.Imaging.ImageFormat.Png);
+          bounds = Windows.ImageMaskWindow.GetAutoSelectedArea();
+        }
+        using (System.Drawing.Bitmap bitmap = ScreenCapturer.Capture(bounds))
+        {
+          Debugger.Current?.TraceScan(bitmap);
+          IAffinityDetector<Raster.Pixel> affinityDetector = AffinityDetectorFabric.GetDetector();
+          affinityDetector.Init();
           using (Raster raster = new Raster(bitmap))
           {
-            double different = Mask.Compare(raster);
-            result = (different < 0.08);
+            Affinity affinity = affinityDetector.Detect(Mask, raster);
+            Debugger.Current.TraceAffinity(affinity);
+            Debugger.Current.TraceCorrelations(affinityDetector as ICorrelation);
+            result = affinity.Value*affinity.Reliability > 0.9;
           }
-//          bitmap.Save("qq2.png", System.Drawing.Imaging.ImageFormat.Png);
+          affinityDetector.Done();
         }
       }
       return result;

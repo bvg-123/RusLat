@@ -1,0 +1,23 @@
+﻿<Application x:Class="RusLat.App"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:system="clr-namespace:System;assembly=mscorlib"
+  xmlns:tools="clr-namespace:RusLat.Tools"
+  xmlns:settings="clr-namespace:RusLat.Settings"
+  xmlns:converters="clr-namespace:RusLat.Converters"
+  Startup="Application_Startup">
+  <Application.Resources>
+    
+    <!-- Отладчик для трассировки параметров работы приложения и алгоритмов распознавания в режиме запуска с ключом /debug. -->
+    <tools:Debugger x:Key="Debugger" />
+
+    <!-- Настройки приложения -->
+    <settings:AppSettings x:Key="AppSettings" />
+
+    <!-- Различные необходимые для биндингов конвертеры. -->
+    <converters:BitmapToImageSourceConverter x:Key="BitmapToImageSourceConverter"></converters:BitmapToImageSourceConverter>
+    <converters:PixelConverter x:Key="PixelConverter"></converters:PixelConverter>
+    <converters:CoordsConverter x:Key="CoordsConverter"></converters:CoordsConverter>
+
+  </Application.Resources>
+</Application>

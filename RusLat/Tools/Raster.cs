@@ -23,12 +23,12 @@ namespace RusLat.Tools
     /// <summary>
     /// Ширина растра (в пикселях).
     /// </summary>
-    public int Width { get { return Bitmap.Width; }}
+    public int Width { get { return Bitmap.Width; } }
 
     /// <summary>
     /// Высота растра (в пикселях).
     /// </summary>
-    public int Height { get { return Bitmap.Height; }}
+    public int Height { get { return Bitmap.Height; } }
 
     /// <summary>
     /// Количество пикселей в растре.
@@ -53,7 +53,12 @@ namespace RusLat.Tools
     /// <summary>
     /// Матрица цветов точек растра (младший байт - голубой, второй байт - зеленый, третий байт - красный, старший четвертый байт не используется)
     /// </summary>
-    public readonly ColorPane32 Color;
+    public readonly ColorPane32 ColorRGB;
+
+    /// <summary>
+    /// Матрица точек растра.
+    /// </summary>
+    public readonly PixelPane Pixels;
 
 
     public BitmapSource Source
@@ -77,7 +82,8 @@ namespace RusLat.Tools
       Blue = new ColorPane8(p, Data.Stride);
       Green = new ColorPane8(p+1, Data.Stride);
       Red = new ColorPane8(p+2, Data.Stride);
-      Color = new ColorPane32(p, Data.Stride);
+      ColorRGB = new ColorPane32(p, Data.Stride);
+      Pixels = new PixelPane(p, Data.Stride);
       Size = Width*Height;
     } // Raster
 
@@ -114,7 +120,7 @@ namespace RusLat.Tools
         }
         else
         {
-          rasterEnumerator.Current.Color = 0xFF0000;
+          rasterEnumerator.Current.ColorRGB = 0xFF0000;
         }
       }
       return ((double)diffs)/(double)Size;
@@ -181,6 +187,26 @@ namespace RusLat.Tools
     } // class ColorPane32
 
 
+    public class PixelPane :ColorPane8
+    {
+      public new Pixel this[int x, int y]
+      {
+        get
+        {
+          Pixel result = new Pixel(() => x, () => y);
+          result.Ptr = base[x, y];
+          return result;
+        } // get this[]
+      } // this[]
+
+
+      public PixelPane (byte* pane, int stride) : base(pane, stride)
+      {
+      } // PixelPane
+
+    } // class PixelPane
+
+
     /// <summary>
     /// Класс пикселя растра, позволяющий быстро получить или задать его цвет.
     /// </summary>
@@ -192,31 +218,65 @@ namespace RusLat.Tools
       public byte* Ptr;
 
       /// <summary>
+      /// Метод получения координаты пикселя по горизонтали.
+      /// </summary>
+      private Func<int> GetX;
+
+      /// <summary>
+      /// Метод получения координаты пикселя по вертикали.
+      /// </summary>
+      private Func<int> GetY;
+
+      /// <summary>
       /// Возвращает или задает цвет пикселя растра: 0xRRGGBB.
       /// </summary>
-      public Int32 Color { get { return *(Int32*)Ptr; } set { *(Int32*)Ptr = value; } }
+      public Int32 ColorRGB { get { return *(Int32*)Ptr; } set { *(Int32*)Ptr = value; } }
 
       /// <summary>
       /// Возвращает значение голубой составляющей пикселя.
       /// </summary>
-      public byte Blue { get { return *Ptr; }}
+      public byte Blue { get { return *Ptr; } }
 
       /// <summary>
       /// Возвращает значение зеленой составляющей пикселя.
       /// </summary>
-      public byte Green { get { return *(Ptr+1); }}
+      public byte Green { get { return *(Ptr+1); } }
 
       /// <summary>
       /// Возвращает значение красной составляющей пикселя.
       /// </summary>
-      public byte Red { get { return *(Ptr+2); }}
+      public byte Red { get { return *(Ptr+2); } }
+
+      /// <summary>
+      /// Возвращает или задает цвет пикселя растра в виде стандартной WPF-структуры Color.
+      /// </summary>
+      public System.Windows.Media.Color Color { get { return System.Windows.Media.Color.FromRgb(Red, Green, Blue); }}
+
+      /// <summary>
+      /// Возвращает яркость пикселя в нормированном цветовом пространстве 0-1.
+      /// </summary>
+      public double E { get { return (Math.Sqrt(Red*Red+Green*Green+Blue*Blue)/443.405d); }}
+
+      /// <summary>
+      /// Координата пикселя в растре по горизонтали.
+      /// </summary>
+      public int X => GetX();
+
+      /// <summary>
+      /// Координата пикселя в растре по вертикали.
+      /// </summary>
+      public int Y => GetY();
 
 
       /// <summary>
       /// Конструктор.
       /// </summary>
-      public Pixel ()
+      /// <param name="getX">Метод получения координаты пикселя по горизонтали.</param>
+      /// <param name="getY">Метод получения координаты пикселя по вертикали.</param>
+      public Pixel (Func<int> getX, Func<int> getY)
       {
+        GetX = getX;
+        GetY = getY;
       } // Pixel
 
 
@@ -256,7 +316,7 @@ namespace RusLat.Tools
       private int x;
       private int y;
       private byte* LinePtr;
-      Pixel Pixel;
+      private Pixel Pixel;
 
       public RasterEnumerator (Raster raster)
       {
@@ -304,6 +364,7 @@ namespace RusLat.Tools
           {
             x = 0;
             LinePtr += Raster.Data.Stride;
+            if (y == 1) LinePtr += 4;  // корректируем указатель, т.к. перебор начали не с первого пикселя, а с несуществующего минус первого в силу устройства итератора (см. Reset)
             Ptr = LinePtr;
             Pixel.Ptr = Ptr;
           }
@@ -319,16 +380,17 @@ namespace RusLat.Tools
 
       public void Reset ()
       {
+        y = 0;
+        x = -1;
         LinePtr = Raster.Blue[0, 0]-4;  // -4 т.к. в начальном состоянии итератор стоит до первого элемента, а на первый элемент попадает только после первого MoveNext.
         Ptr = LinePtr;
-        Pixel = new Pixel();
+        Pixel = new Pixel(() => x, () => y);
         Pixel.Ptr = Ptr;
-        x = -1;
-        y = 0;
       } // Reset
 
     } // RasterEnumerator
 
   } // class Raster
+
 
 } // namespace RusLat.Tools

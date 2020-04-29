@@ -13,7 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace RusLat
+namespace RusLat.Windows
 {
   /// <summary>
   /// Окно для получения выделенного мышью куска экрана. Исчезает при отпускании левой кнопки мыши.
@@ -100,4 +100,4 @@ namespace RusLat
 
   } // class ScreenWindow
 
-} // namespace RusLat
+} // namespace RusLat.Windows

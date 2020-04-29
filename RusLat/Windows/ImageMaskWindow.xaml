@@ -1,0 +1,27 @@
+﻿<Window x:Class="RusLat.Windows.ImageMaskWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:RusLat"
+        xmlns:xceed="http://schemas.xceed.com/wpf/xaml/toolkit"
+        mc:Ignorable="d"
+        Title="RUSLAT Highlighter - выбор изображения подсвечиваемого языка" Height="305pt" Width="500pt" WindowStartupLocation="CenterScreen">
+  <Grid>
+    <TextBlock
+      Margin="0,10,0,0" HorizontalAlignment="Center" VerticalAlignment="Top" Height="84" TextWrapping="Wrap"
+      TextAlignment="Center" FontSize="14pt"><Run Text="Это первый запуск приложения. Необходимо включить язык ввода, который приложение должно автоматически подсвечивать, и "/><Run Text="нажать на кнопку"/><Run Text="."/></TextBlock>
+    <Button x:Name="SelectImageMaskButton" HorizontalAlignment="Center" Margin="0,140,0,0" VerticalAlignment="Top"
+      Width="448" Height="78" FontSize="14pt" Click="SelectImageMaskButton_Click">
+      <TextBlock Text="Зафиксировать область с изображением подсвечиваемого языка ввода" TextWrapping="Wrap" TextAlignment="Center"/>
+    </Button>
+    
+    <Label Content="Прозрачность подсветки:" HorizontalAlignment="Left" Margin="106,261,0,0" VerticalAlignment="Top"/>
+    <Slider HorizontalAlignment="Left" Margin="265,261,0,0" VerticalAlignment="Top" Maximum="1" LargeChange="0.1" SmallChange="0.01" TickPlacement="TopLeft" Width="289" TickFrequency="0.1" Value="{Binding SelectedOpacity, Source={StaticResource AppSettings}}" />
+    <Label Content="0" HorizontalAlignment="Left" Margin="261,239,0,0" VerticalAlignment="Top"/>
+    <Label Content="1" HorizontalAlignment="Left" Margin="538,239,0,0" VerticalAlignment="Top"/>
+
+    <Label Content="Цвет подсветки:" HorizontalAlignment="Left" Margin="157,308,0,0" VerticalAlignment="Top"/>
+    <xceed:ColorPicker Margin="261,311,155,36.4" SelectedColor="{Binding SelectedColor, Source={StaticResource AppSettings}}"/>
+  </Grid>
+</Window>
